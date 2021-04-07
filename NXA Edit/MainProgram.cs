@@ -27,10 +27,15 @@ using System.Management;
 namespace NXA_Edit {
   public partial class MainProgram : Form {
     private List<USBDrive> usbdrives;
-    private string selectedSerial, saveSerial, saveName;
+    private List<string> usbdrvLetters;
+    private string selectedSerial, saveSerial, saveName, selectedLetter;
     private int saveAvatar;
     private byte[] saveBytes, rankBytes, uncSave, encSave;
     private bool NXALoaded = false;
+    private string nxasave = "nxasave.bin";
+    private string nxarank = "nxarank.bin";
+    private string nx2save = "nx2save.bin";
+    private string nx2rank = "nx2rank.bin";
 
     public MainProgram() {
       InitializeComponent();
@@ -38,12 +43,12 @@ namespace NXA_Edit {
     }
 
     private void loadNX2Button_Click(object sender, EventArgs e) {
-      if (File.Exists("nx2save.bin") && File.Exists("nx2rank.bin")) {
+      if (File.Exists(nx2save) && File.Exists(nx2rank)) {
         // Load Data from Files
-        saveBytes = File.ReadAllBytes("nx2save.bin");
+        saveBytes = File.ReadAllBytes(nx2save);
         uncSave = saveBytes.SubArray(0, Constants.NX2PAD_SAVE);
         encSave = saveBytes.SubArray(Constants.NX2PAD_SAVE, saveBytes.Length - Constants.NX2PAD_SAVE);
-        rankBytes = File.ReadAllBytes("nx2rank.bin");
+        rankBytes = File.ReadAllBytes(nx2rank);
 
         // Decode Data
         Tools.Decode(encSave);
@@ -71,6 +76,7 @@ namespace NXA_Edit {
 
     private void MainProgram_Load(object sender, EventArgs e) {
       usbdrives = new List<USBDrive>();
+      usbdrvLetters = new List<string>();
       UpdateList();
     }
 
@@ -87,14 +93,35 @@ namespace NXA_Edit {
         debugMessages.Text += "\r\nDevice list changed! Refreshing.";
         usbdrives.Clear();
         driveList.Items.Clear();
+        usbdrvLetters.Clear();
         int c = 0;
         foreach (USBDrive drive in tmp) {
           usbdrives.Add(drive);
+
+          // Searches for the drive letter
+          string driveLetter = "UNK";
+          foreach (ManagementObject partition in new ManagementObjectSearcher(
+            "ASSOCIATORS OF {Win32_DiskDrive.DeviceID='" + drive.DeviceID
+            + "'} WHERE AssocClass = Win32_DiskDriveToDiskPartition").Get())
+          {
+            foreach (ManagementObject disk in new ManagementObjectSearcher(
+                    "ASSOCIATORS OF {Win32_DiskPartition.DeviceID='"
+                        + partition["DeviceID"]
+                        + "'} WHERE AssocClass = Win32_LogicalDiskToPartition").Get())
+            {
+              //Console.WriteLine("Drive letter " + disk["Name"]);
+              driveLetter = disk["Name"].ToString();
+            }
+          }
+          usbdrvLetters.Add(driveLetter);
           driveList.Items.Add(drive.Model + " (" + drive.Size + " GB)");
           if (c == 0) {
             usbModel.Text = drive.Model;
             usbSerial.Text = drive.SerialNumber;
             selectedSerial = drive.SerialNumber;
+            drvLetter.Text = driveLetter;
+            selectedLetter = driveLetter;
+            updatePaths();
           }
           c++;
         }
@@ -107,6 +134,27 @@ namespace NXA_Edit {
       usbModel.Text = tmp.Model;
       usbSerial.Text = tmp.SerialNumber;
       selectedSerial = tmp.SerialNumber;
+      drvLetter.Text = usbdrvLetters[idx];
+      selectedLetter = usbdrvLetters[idx];
+      updatePaths();
+    }
+
+    private void updatePaths()
+    {
+      if(selectedLetter != "UNK")
+      {
+        nx2rank = string.Format("{0}\\nx2rank.bin", selectedLetter);
+        nx2save = string.Format("{0}\\nx2save.bin", selectedLetter);
+        nxarank = string.Format("{0}\\nxarank.bin", selectedLetter);
+        nxasave = string.Format("{0}\\nxasave.bin", selectedLetter);
+      }
+      else
+      {
+        nx2rank = "nx2rank.bin";
+        nx2save = "nx2save.bin";
+        nxarank = "nxarank.bin";
+        nxasave = "nxasave.bin";
+      }
     }
 
     private void updateDrives_Tick(object sender, EventArgs e) {
@@ -169,9 +217,9 @@ namespace NXA_Edit {
       Tools.Encode(encSave);
 
       if (NXALoaded) {
-        File.WriteAllBytes("nxasave.bin", Tools.Combine(uncSave, encSave, new byte[0]));
+        File.WriteAllBytes(nxasave, Tools.Combine(uncSave, encSave, new byte[0]));
       } else {
-        File.WriteAllBytes("nx2save.bin", Tools.Combine(uncSave, encSave, new byte[0]));
+        File.WriteAllBytes(nx2save, Tools.Combine(uncSave, encSave, new byte[0]));
       }
 
       Tools.Decode(encSave);
@@ -187,12 +235,12 @@ namespace NXA_Edit {
     }
 
     private void loadNXAButton_Click(object sender, EventArgs e) {
-      if (File.Exists("nxasave.bin") && File.Exists("nxarank.bin")) {
+      if (File.Exists(nxasave) && File.Exists(nxarank)) {
         // Read All Data
-        saveBytes = File.ReadAllBytes("nxasave.bin");
+        saveBytes = File.ReadAllBytes(nxasave);
         uncSave = saveBytes.SubArray(0, Constants.NXA_STATAREA);
         encSave = saveBytes.SubArray(Constants.NXA_STATAREA, saveBytes.Length - Constants.NXA_STATAREA);
-        rankBytes = File.ReadAllBytes("nxarank.bin");
+        rankBytes = File.ReadAllBytes(nxarank);
         
         // Decode Data
         Tools.Decode(encSave);
