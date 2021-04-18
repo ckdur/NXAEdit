@@ -30,7 +30,14 @@ namespace NXA_Edit {
       this.deviceID = usbDrive["DeviceID"].ToString();
       this.model = usbDrive["Model"].ToString();
       this.serialNumber = usbDrive["SerialNumber"].ToString();
-      this.size = Math.Round(double.Parse(usbDrive["Size"].ToString()) / (1024 * 1024 * 1024), 2); // Convert bytes to GB
+      if(usbDrive.GetPropertyValue("Size") != null)
+      {
+        this.size = Math.Round(double.Parse(usbDrive["Size"].ToString()) / (1024 * 1024 * 1024), 2); // Convert bytes to GB
+      }
+      else
+      {
+        this.size = 0;
+      }
     }
     public USBDrive(string DeviceID, string Model, string SerialNumber, double size) {
       this.deviceID = DeviceID;
