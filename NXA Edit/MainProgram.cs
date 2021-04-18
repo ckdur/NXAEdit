@@ -57,6 +57,8 @@ namespace NXA_Edit {
         uncSave = saveBytes.SubArray(0, Constants.NX2PAD_SAVE);
         encSave = saveBytes.SubArray(Constants.NX2PAD_SAVE, saveBytes.Length - Constants.NX2PAD_SAVE);
         rankBytes = File.ReadAllBytes(nx2rank);
+        debugMessages.Text += "\r\nCreating backup of the save .bak.";
+        File.WriteAllBytes(nx2savebk, Tools.Combine(uncSave, encSave, new byte[0]));
 
         // Decode Data
         Tools.Decode(encSave);
@@ -215,17 +217,17 @@ namespace NXA_Edit {
         }
         x.StateArea = copy;
         encSave[constt + 0] = (byte)((itemValue & 0x000000FF) >> 0);
-        encSave[constt + 1] = (byte)((itemValue & 0x000000FF) >> 0);
-        encSave[constt + 2] = (byte)((itemValue & 0x000000FF) >> 0);
-        encSave[constt + 3] = (byte)((itemValue & 0x000000FF) >> 0);
-        encSave[Constants.MILEAGE_1 + 0] = (byte)((copy.mileage & 0x000000FF) >> 0);
-        encSave[Constants.MILEAGE_1 + 1] = (byte)((copy.mileage & 0x0000FF00) >> 0);
-        encSave[Constants.MILEAGE_1 + 2] = (byte)((copy.mileage & 0x00FF0000) >> 0);
-        encSave[Constants.MILEAGE_1 + 3] = (byte)((copy.mileage & 0xFF000000) >> 0);
+        encSave[constt + 1] = (byte)((itemValue & 0x0000FF00) >> 8);
+        encSave[constt + 2] = (byte)((itemValue & 0x00FF0000) >> 16);
+        encSave[constt + 3] = (byte)((itemValue & 0xFF000000) >> 24);
+        uncSave[Constants.MILEAGE_1 + 0] = (byte)((copy.mileage & 0x000000FF) >> 0);
+        uncSave[Constants.MILEAGE_1 + 1] = (byte)((copy.mileage & 0x0000FF00) >> 8);
+        uncSave[Constants.MILEAGE_1 + 2] = (byte)((copy.mileage & 0x00FF0000) >> 16);
+        uncSave[Constants.MILEAGE_1 + 3] = (byte)((copy.mileage & 0xFF000000) >> 24);
         encSave[Constants.MILEAGE_2 + 0] = (byte)((copy.mileage & 0x000000FF) >> 0);
-        encSave[Constants.MILEAGE_2 + 1] = (byte)((copy.mileage & 0x0000FF00) >> 0);
-        encSave[Constants.MILEAGE_2 + 2] = (byte)((copy.mileage & 0x00FF0000) >> 0);
-        encSave[Constants.MILEAGE_2 + 3] = (byte)((copy.mileage & 0xFF000000) >> 0);
+        encSave[Constants.MILEAGE_2 + 1] = (byte)((copy.mileage & 0x0000FF00) >> 8);
+        encSave[Constants.MILEAGE_2 + 2] = (byte)((copy.mileage & 0x00FF0000) >> 16);
+        encSave[Constants.MILEAGE_2 + 3] = (byte)((copy.mileage & 0xFF000000) >> 24);
         putNXADataOnGUI();
       }
     }
@@ -363,15 +365,6 @@ namespace NXA_Edit {
     private void saveButton_Click(object sender, EventArgs e) {
       int serialSize = usbSerialLabel.Text.Length < 24 ? usbSerialLabel.Text.Length : 24;
       int nameSize = usbNameEdit.Text.Length < 8 ? usbNameEdit.Text.Length : 8;
-      // Backup the files
-      Tools.Encode(encSave);
-      debugMessages.Text += "\r\nCreating backup of the save .bak.";
-      if (NXALoaded) {
-        File.WriteAllBytes(nxasavebk, Tools.Combine(uncSave, encSave, new byte[0]));
-      } else {
-        File.WriteAllBytes(nx2savebk, Tools.Combine(uncSave, encSave, new byte[0]));
-      }
-      Tools.Decode(encSave);
 
       //Change Serial:
       for (int i = 0; i < serialSize; i++) {
@@ -402,10 +395,10 @@ namespace NXA_Edit {
       // Calculate CRC
       uint crc = Tools.adler32(encSave, 4, encSave.Length - 4, 1);
       Console.WriteLine("CRC: {0}", crc);
-      encSave[3] = (byte)((crc & 0x000000FF) >> 0);
-      encSave[2] = (byte)((crc & 0x0000FF00) >> 8);
-      encSave[1] = (byte)((crc & 0x00FF0000) >> 16);
-      encSave[0] = (byte)((crc & 0xFF000000) >> 24);
+      encSave[0] = (byte)((crc & 0x000000FF) >> 0);
+      encSave[1] = (byte)((crc & 0x0000FF00) >> 8);
+      encSave[2] = (byte)((crc & 0x00FF0000) >> 16);
+      encSave[3] = (byte)((crc & 0xFF000000) >> 24);
 
       Tools.Encode(encSave);
 
@@ -434,7 +427,10 @@ namespace NXA_Edit {
         uncSave = saveBytes.SubArray(0, Constants.NXA_STATAREA);
         encSave = saveBytes.SubArray(Constants.NXA_STATAREA, saveBytes.Length - Constants.NXA_STATAREA);
         rankBytes = File.ReadAllBytes(nxarank);
-        
+        // Backup the files
+        debugMessages.Text += "\r\nCreating backup of the save .bak.";
+        File.WriteAllBytes(nxasavebk, Tools.Combine(uncSave, encSave, new byte[0]));
+
         // Decode Data
         Tools.Decode(encSave);
         Tools.Decode(rankBytes);

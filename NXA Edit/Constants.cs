@@ -24,11 +24,11 @@ namespace NXA_Edit {
     public static readonly int SAVE_NAME2 = 0x58;
     public static readonly int SAVE_SERIAL = 0x4;
     public static readonly int SAVE_AVATAR = 0x4C;
-    public static readonly int BREAK_ITEM_SLOT = 0x8ABC;
-    public static readonly int FUNC_ITEM_SLOT = 0x8AC0;
-    public static readonly int BGA_ITEM_SLOT = 0x8AC4;
-    public static readonly int TIME_ITEM_SLOT = 0x8AC8;
+    public static readonly int BREAK_ITEM_SLOT = 0x8ABC - NXA_STATAREA;
+    public static readonly int FUNC_ITEM_SLOT = 0x8AC0 - NXA_STATAREA;
+    public static readonly int BGA_ITEM_SLOT = 0x8AC4 - NXA_STATAREA;
+    public static readonly int TIME_ITEM_SLOT = 0x8AC8 - NXA_STATAREA;
     public static readonly int MILEAGE_1 = 0xC;
-    public static readonly int MILEAGE_2 = 0x1A8;
+    public static readonly int MILEAGE_2 = 0x1A8 - NXA_STATAREA;
   }
 }
