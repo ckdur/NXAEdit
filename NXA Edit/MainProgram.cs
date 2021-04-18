@@ -1,6 +1,7 @@
 ﻿// ---------------------------------------------------------------------------
 //    NX2 / NXA Save Game Editor
 //    Copyright (C) 2015  Lucas Teske
+//    Copyright (C) 2021  Ckristian Duran
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
