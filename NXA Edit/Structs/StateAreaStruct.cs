@@ -121,6 +121,5 @@ namespace NXA_Edit.Structs {
     public int zeroed2;
     public int zeroed3;
     public int zeroed4;
-    // TODO: End of assumptions
   }
 }
